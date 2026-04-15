@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}{{ STORE_NAME }} — Home{% endblock %}
+
+{% block content %}
+
+<!-- ── Hero Section ──────────────────────────────────────────────────────── -->
+<section class="relative overflow-hidden">
+  {% if THEME_HERO_IMAGE_URL %}
+    <div class="absolute inset-0 bg-cover bg-center"
+         style="background-image: url('{{ THEME_HERO_IMAGE_URL }}')">
+      <div class="absolute inset-0 bg-slate-900/55"></div>
+    </div>
+  {% else %}
+    <div class="absolute inset-0" style="background: linear-gradient(135deg, {{ THEME_PRIMARY_COLOR }}22 0%, {{ THEME_PRIMARY_COLOR }}08 100%); background-color: #0f172a;"></div>
+    <!-- Decorative blobs -->
+    <div class="absolute top-0 right-0 w-96 h-96 rounded-full opacity-10 blur-3xl"
+         style="background: {{ THEME_PRIMARY_COLOR }}; transform: translate(30%, -30%)"></div>
+    <div class="absolute bottom-0 left-0 w-80 h-80 rounded-full opacity-10 blur-3xl"
+         style="background: {{ THEME_PRIMARY_COLOR }}; transform: translate(-30%, 30%)"></div>
+  {% endif %}
+
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28 sm:py-36 text-center text-white">
+    <div class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest mb-6
+                px-3 py-1.5 rounded-full border border-white/25 bg-white/10 backdrop-blur-sm">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+      New arrivals available
+    </div>
+
+    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-tight mb-6">
+      Discover Something<br />
+      <span style="color: {{ THEME_PRIMARY_COLOR }}">Extraordinary</span>
+    </h1>
+
+    <p class="text-lg text-white/75 max-w-xl mx-auto mb-10 leading-relaxed">
+      Carefully curated products, shipped worldwide.<br />
+      Quality you can trust, prices you'll love.
+    </p>
+
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+      <a href="{% url 'product_list' %}"
+         class="btn-primary inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full
+                text-sm font-semibold shadow-lg shadow-black/25 transition-all">
+        Shop Now
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+        </svg>
+      </a>
+      {% if SELLER_CONTACT_VALUE %}
+      <div x-data="{ open: false }" class="relative inline-block">
+        <button @click="open=!open" @click.outside="open=false"
+                class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full
+                       text-sm font-semibold border border-white/30 bg-white/10 backdrop-blur-sm
+                       hover:bg-white/20 transition-all text-white">
+          {{ SELLER_CONTACT_LABEL }}
+        </button>
+        <div x-show="open" x-transition
+             class="absolute top-14 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-xl
+                    border border-slate-100 p-4 min-w-[220px] z-50 text-left">
+          <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
+            {{ SELLER_CONTACT_TYPE|capfirst }}
+          </div>
+          <div class="font-semibold text-slate-800 break-all select-all">{{ SELLER_CONTACT_VALUE }}</div>
+          <p class="text-xs text-slate-400 mt-2">Click to select and copy</p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<!-- ── Category chips ────────────────────────────────────────────────────── -->
+{% if categories %}
+<section class="bg-white border-b border-slate-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+      <a href="{% url 'product_list' %}"
+         class="shrink-0 px-4 py-1.5 rounded-full text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">
+        All
+      </a>
+      {% for cat in categories %}
+      <a href="{% url 'product_list' %}?category={{ cat.slug }}"
+         class="shrink-0 px-4 py-1.5 rounded-full text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">
+        {{ cat.name }}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ── Featured Products ─────────────────────────────────────────────────── -->
+{% if featured_products %}
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+  <div class="flex items-end justify-between mb-8">
+    <div>
+      <h2 class="text-2xl font-bold text-slate-900">Featured</h2>
+      <p class="text-slate-500 text-sm mt-1">Hand-picked for you</p>
+    </div>
+    <a href="{% url 'product_list' %}" class="text-sm font-medium text-primary hover:underline flex items-center gap-1">
+      View all
+      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+      </svg>
+    </a>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+    {% for product in featured_products %}
+      {% include "store/partials/product_card.html" %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- ── Value Propositions ─────────────────────────────────────────────────── -->
+<section class="bg-white border-y border-slate-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+      {% for prop in props %}
+      <div class="flex flex-col items-center gap-3">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
+             style="background: {{ THEME_PRIMARY_COLOR }}15; color: {{ THEME_PRIMARY_COLOR }}">
+          {{ prop.icon|safe }}
+        </div>
+        <div>
+          <div class="font-semibold text-slate-800 text-sm">{{ prop.title }}</div>
+          <div class="text-slate-500 text-xs mt-0.5">{{ prop.subtitle }}</div>
+        </div>
+      </div>
+      {% empty %}
+      {% for item in "1234" %}
+      <div class="flex flex-col items-center gap-3">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
+             style="background: {{ THEME_PRIMARY_COLOR }}15; color: {{ THEME_PRIMARY_COLOR }}">
+          {% if forloop.counter == 1 %}
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          {% elif forloop.counter == 2 %}
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+          </svg>
+          {% elif forloop.counter == 3 %}
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+          {% else %}
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+          </svg>
+          {% endif %}
+        </div>
+        <div>
+          <div class="font-semibold text-slate-800 text-sm">
+            {% if forloop.counter == 1 %}Quality Guarantee
+            {% elif forloop.counter == 2 %}Fast Shipping
+            {% elif forloop.counter == 3 %}Secure Payment
+            {% else %}24/7 Support
+            {% endif %}
+          </div>
+          <div class="text-slate-500 text-xs mt-0.5">
+            {% if forloop.counter == 1 %}Every item inspected
+            {% elif forloop.counter == 2 %}Worldwide delivery
+            {% elif forloop.counter == 3 %}Stripe-powered
+            {% else %}Always here for you
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── Latest Products ───────────────────────────────────────────────────── -->
+{% if latest_products %}
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+  <div class="flex items-end justify-between mb-8">
+    <div>
+      <h2 class="text-2xl font-bold text-slate-900">Latest Arrivals</h2>
+      <p class="text-slate-500 text-sm mt-1">Fresh in stock</p>
+    </div>
+    <a href="{% url 'product_list' %}" class="text-sm font-medium text-primary hover:underline flex items-center gap-1">
+      See all
+      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+      </svg>
+    </a>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+    {% for product in latest_products %}
+      {% include "store/partials/product_card.html" %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- ── Contact Banner ─────────────────────────────────────────────────────── -->
+{% if SELLER_CONTACT_VALUE %}
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+  <div class="rounded-2xl p-8 text-center text-white"
+       style="background: linear-gradient(135deg, {{ THEME_PRIMARY_COLOR }}, {{ THEME_PRIMARY_COLOR }}cc)">
+    <h3 class="text-xl font-bold mb-2">Have a question?</h3>
+    <p class="text-white/80 text-sm mb-6">Our team is ready to help you find exactly what you need.</p>
+    <div x-data="{ open: false }" class="inline-block">
+      <button @click="open=!open" @click.outside="open=false"
+              class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white text-sm font-semibold transition-all hover:shadow-lg"
+              style="color: {{ THEME_PRIMARY_COLOR }}">
+        {{ SELLER_CONTACT_LABEL }}
+      </button>
+      <div x-show="open" x-transition
+           class="absolute mt-2 bg-white rounded-xl shadow-xl border border-slate-100 p-4 text-left min-w-[220px] z-50">
+        <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
+          {{ SELLER_CONTACT_TYPE|capfirst }}
+        </div>
+        <div class="font-semibold text-slate-800 break-all select-all">{{ SELLER_CONTACT_VALUE }}</div>
+        <p class="text-xs text-slate-400 mt-2">Click to select and copy</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}

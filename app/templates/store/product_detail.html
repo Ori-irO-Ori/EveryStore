@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} — {{ STORE_NAME }}{% endblock %}
+{% block meta_description %}{{ product.description|truncatewords:30 }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
+     x-data="{ activeImg: 0 }">
+
+  <!-- Breadcrumb -->
+  <nav class="text-xs text-slate-400 mb-6 flex items-center gap-1.5">
+    <a href="{% url 'index' %}" class="hover:text-slate-600">Home</a>
+    <span>/</span>
+    <a href="{% url 'product_list' %}" class="hover:text-slate-600">Shop</a>
+    {% if product.category %}
+    <span>/</span>
+    <a href="{% url 'product_list' %}?category={{ product.category.slug }}"
+       class="hover:text-slate-600">{{ product.category.name }}</a>
+    {% endif %}
+    <span>/</span>
+    <span class="text-slate-600 font-medium">{{ product.name }}</span>
+  </nav>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+
+    <!-- Image gallery -->
+    <div class="space-y-3">
+      <!-- Main image -->
+      <div class="aspect-square rounded-2xl overflow-hidden bg-slate-100">
+        {% for img in product.images.all %}
+        <img src="{{ img.image.url }}"
+             alt="{{ img.alt_text|default:product.name }}"
+             class="w-full h-full object-cover transition-opacity duration-200"
+             x-show="activeImg === {{ forloop.counter0 }}"
+             loading="{% if forloop.first %}eager{% else %}lazy{% endif %}" />
+        {% empty %}
+        <div class="w-full h-full flex items-center justify-center text-slate-300">
+          <svg class="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Thumbnails -->
+      {% if product.images.count > 1 %}
+      <div class="flex gap-2 overflow-x-auto pb-1">
+        {% for img in product.images.all %}
+        <button @click="activeImg = {{ forloop.counter0 }}"
+                class="shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-colors"
+                :class="activeImg === {{ forloop.counter0 }} ? 'border-primary opacity-100' : 'border-transparent opacity-60 hover:opacity-100'">
+          <img src="{{ img.image.url }}" alt="" class="w-full h-full object-cover" loading="lazy" />
+        </button>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Product info -->
+    <div class="flex flex-col">
+      {% if product.category %}
+      <span class="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">
+        {{ product.category.name }}
+      </span>
+      {% endif %}
+
+      <h1 class="text-3xl font-bold text-slate-900 leading-tight">{{ product.name }}</h1>
+
+      <!-- Price -->
+      <div class="flex items-center gap-3 mt-4">
+        <span class="text-3xl font-bold text-slate-900">${{ product.price }}</span>
+        {% if product.compare_price %}
+        <span class="text-lg text-slate-400 line-through">${{ product.compare_price }}</span>
+        <span class="text-sm font-bold text-white px-2 py-0.5 rounded-full"
+              style="background:#ef4444">
+          Save {{ product.discount_percent }}%
+        </span>
+        {% endif %}
+      </div>
+
+      <!-- Stock -->
+      <div class="mt-3">
+        {% if product.stock > 10 %}
+        <span class="inline-flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>In stock
+        </span>
+        {% elif product.stock > 0 %}
+        <span class="inline-flex items-center gap-1.5 text-sm text-amber-600 font-medium">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+          Only {{ product.stock }} left
+        </span>
+        {% else %}
+        <span class="inline-flex items-center gap-1.5 text-sm text-red-500 font-medium">
+          <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>Out of stock
+        </span>
+        {% endif %}
+      </div>
+
+      <!-- Description -->
+      <div class="mt-6 prose prose-sm prose-slate max-w-none text-slate-600 leading-relaxed">
+        {{ product.description|linebreaks }}
+      </div>
+
+      <!-- Add to cart -->
+      {% if product.stock > 0 %}
+      <div class="mt-8 flex gap-3">
+        <button class="btn-primary flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl
+                       font-semibold text-sm shadow-sm focus:outline-none focus:ring-2 ring-primary"
+                hx-post="{% url 'add_to_cart' product.id %}"
+                hx-target="#cart-count"
+                hx-swap="innerHTML">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+          </svg>
+          Add to Cart
+        </button>
+        <a href="{% url 'cart_detail' %}"
+           class="px-4 py-3.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+        </a>
+      </div>
+      {% else %}
+      <div class="mt-8">
+        <button disabled
+                class="w-full py-3.5 rounded-xl bg-slate-100 text-slate-400 font-semibold text-sm cursor-not-allowed">
+          Out of Stock
+        </button>
+      </div>
+      {% endif %}
+
+      <!-- Secure checkout note -->
+      <div class="mt-4 flex items-center gap-2 text-xs text-slate-400">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        </svg>
+        Secure checkout powered by Stripe
+      </div>
+    </div>
+  </div>
+
+  <!-- Related products -->
+  {% if related_products %}
+  <div class="mt-20">
+    <h2 class="text-xl font-bold text-slate-900 mb-6">You might also like</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+      {% for product in related_products %}
+        {% include "store/partials/product_card.html" %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

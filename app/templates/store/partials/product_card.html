@@ -1,0 +1,57 @@
+<article class="product-card bg-white rounded-2xl overflow-hidden border border-slate-100 group">
+  <a href="{% url 'product_detail' product.slug %}" class="block img-zoom-wrap aspect-square bg-slate-100">
+    {% with img=product.primary_image %}
+    {% if img %}
+      <img src="{{ img.image.url }}"
+           alt="{{ img.alt_text|default:product.name }}"
+           class="w-full h-full object-cover" loading="lazy" />
+    {% else %}
+      <div class="w-full h-full flex items-center justify-center text-slate-300">
+        <svg class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+      </div>
+    {% endif %}
+    {% endwith %}
+
+    {% if product.discount_percent %}
+    <div class="absolute top-2.5 left-2.5 text-xs font-bold text-white px-2 py-0.5 rounded-full"
+         style="background: #ef4444">
+      -{{ product.discount_percent }}%
+    </div>
+    {% endif %}
+  </a>
+
+  <div class="p-4">
+    {% if product.category %}
+    <span class="text-xs font-medium text-slate-400 uppercase tracking-wide">{{ product.category.name }}</span>
+    {% endif %}
+
+    <a href="{% url 'product_detail' product.slug %}">
+      <h3 class="font-semibold text-slate-800 text-sm mt-1 leading-snug line-clamp-2 hover:text-primary transition-colors">
+        {{ product.name }}
+      </h3>
+    </a>
+
+    <div class="flex items-center justify-between mt-3">
+      <div>
+        <span class="font-bold text-slate-900">${{ product.price }}</span>
+        {% if product.compare_price %}
+        <span class="text-xs text-slate-400 line-through ml-1">${{ product.compare_price }}</span>
+        {% endif %}
+      </div>
+
+      <button class="btn-primary w-8 h-8 rounded-full flex items-center justify-center shrink-0
+                     shadow-sm shadow-black/10 focus:outline-none"
+              hx-post="{% url 'add_to_cart' product.id %}"
+              hx-target="#cart-count"
+              hx-swap="innerHTML"
+              title="Add to cart">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</article>

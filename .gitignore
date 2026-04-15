@@ -1,0 +1,34 @@
+# Environment / secrets
+.env
+*.env
+
+# Python
+*.pyc
+*.pyo
+__pycache__/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Django
+staticfiles/
+mediafiles/
+db.sqlite3
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# Docker
+*.override.yml
+
+# Claude Code (local settings)
+.claude/

@@ -1,0 +1,67 @@
+name: everystore
+
+services:
+  # Local PostgreSQL — for development only.
+  # For production, set DB_HOST to your RDS endpoint; this container is unused.
+  everystore-db:
+    image: postgres:16-alpine
+    container_name: everystore-db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-everystore}
+      POSTGRES_USER: ${DB_USER:-everystore}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-everystore}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  everystore-app:
+    build: ./app
+    container_name: everystore-app
+    ports:
+      # Bind only to loopback so nginx (host network) can reach gunicorn,
+      # but gunicorn is NOT directly exposed to the internet.
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - app-secrets:/app/secrets
+      - static-files:/app/staticfiles
+      - media-files:/app/mediafiles
+    env_file: .env
+    depends_on:
+      everystore-db:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.connect(('127.0.0.1',8000)); s.close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 90s
+
+  # Nginx uses host network so the random admin port binds directly without
+  # static port mappings in docker-compose. Works on EC2/Ubuntu out of the box.
+  everystore-nginx:
+    build: ./nginx
+    container_name: everystore-nginx
+    network_mode: host
+    volumes:
+      - app-secrets:/app/secrets
+      - static-files:/app/staticfiles:ro
+      - media-files:/app/mediafiles:ro
+      - letsencrypt-data:/etc/letsencrypt
+    env_file: .env
+    depends_on:
+      everystore-app:
+        condition: service_healthy
+    restart: always
+
+volumes:
+  postgres-data:
+  app-secrets:
+  static-files:
+  media-files:
+  letsencrypt-data:

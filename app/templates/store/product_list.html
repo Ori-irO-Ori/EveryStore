@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Shop — {{ STORE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900">
+        {% if selected_category %}{{ selected_category.name }}
+        {% elif search_query %}Results for "{{ search_query }}"
+        {% else %}All Products{% endif %}
+      </h1>
+      <p class="text-slate-500 text-sm mt-1">{{ page_obj.paginator.count }} product{{ page_obj.paginator.count|pluralize }} found</p>
+    </div>
+
+    <!-- Search form -->
+    <form action="{% url 'product_list' %}" method="get"
+          class="flex items-center bg-white border border-slate-200 rounded-xl px-3 py-2 gap-2 shadow-sm">
+      <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <input name="q" type="text" value="{{ search_query }}"
+             placeholder="Search products..."
+             class="text-sm outline-none text-slate-700 placeholder-slate-400 w-48" />
+      {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category.slug }}" />{% endif %}
+    </form>
+  </div>
+
+  <div class="flex gap-8">
+    <!-- Sidebar filters -->
+    <aside class="hidden lg:block w-52 shrink-0">
+      <div class="bg-white rounded-2xl border border-slate-100 p-5 sticky top-24">
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">Categories</h3>
+        <ul class="space-y-1 text-sm">
+          <li>
+            <a href="{% url 'product_list' %}{% if search_query %}?q={{ search_query }}{% endif %}"
+               class="block px-2 py-1.5 rounded-lg transition-colors
+                      {% if not selected_category %}font-semibold text-primary bg-slate-50{% else %}text-slate-600 hover:bg-slate-50{% endif %}">
+              All Products
+            </a>
+          </li>
+          {% for cat in categories %}
+          <li>
+            <a href="{% url 'product_list' %}?category={{ cat.slug }}{% if search_query %}&q={{ search_query }}{% endif %}"
+               class="block px-2 py-1.5 rounded-lg transition-colors
+                      {% if selected_category.slug == cat.slug %}font-semibold text-primary bg-slate-50{% else %}text-slate-600 hover:bg-slate-50{% endif %}">
+              {{ cat.name }}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Product grid -->
+    <div class="flex-1 min-w-0">
+      <!-- Mobile category chips -->
+      {% if categories %}
+      <div class="flex gap-2 overflow-x-auto pb-3 mb-5 lg:hidden">
+        <a href="{% url 'product_list' %}"
+           class="shrink-0 px-3 py-1 rounded-full text-xs font-medium
+                  {% if not selected_category %}text-white{% else %}bg-slate-100 text-slate-600{% endif %}"
+           {% if not selected_category %}style="background:{{ THEME_PRIMARY_COLOR }}"{% endif %}>All</a>
+        {% for cat in categories %}
+        <a href="{% url 'product_list' %}?category={{ cat.slug }}"
+           class="shrink-0 px-3 py-1 rounded-full text-xs font-medium
+                  {% if selected_category.slug == cat.slug %}text-white{% else %}bg-slate-100 text-slate-600{% endif %}"
+           {% if selected_category.slug == cat.slug %}style="background:{{ THEME_PRIMARY_COLOR }}"{% endif %}>
+          {{ cat.name }}
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if page_obj.object_list %}
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+        {% for product in page_obj %}
+          {% include "store/partials/product_card.html" %}
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if page_obj.has_other_pages %}
+      <div class="flex justify-center gap-2 mt-10">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if selected_category %}&category={{ selected_category.slug }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+           class="px-4 py-2 text-sm rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors">
+          ← Prev
+        </a>
+        {% endif %}
+        <span class="px-4 py-2 text-sm rounded-lg border border-slate-200 bg-white text-slate-500">
+          {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+        </span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if selected_category %}&category={{ selected_category.slug }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+           class="px-4 py-2 text-sm rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors">
+          Next →
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% else %}
+      <div class="text-center py-20 text-slate-400">
+        <svg class="w-12 h-12 mx-auto mb-4 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+        </svg>
+        <p class="font-medium text-slate-500">No products found</p>
+        <a href="{% url 'product_list' %}" class="text-sm text-primary mt-2 inline-block hover:underline">Clear filters</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

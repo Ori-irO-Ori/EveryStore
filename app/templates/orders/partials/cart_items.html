@@ -1,0 +1,66 @@
+<div class="space-y-3">
+  {% for item in cart.items.all %}
+  <div class="bg-white rounded-2xl border border-slate-100 p-4 flex gap-4 items-start"
+       id="cart-item-{{ item.id }}">
+
+    <!-- Product image -->
+    <a href="{% url 'product_detail' item.product.slug %}"
+       class="shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-slate-100">
+      {% with img=item.product.primary_image %}
+      {% if img %}
+        <img src="{{ img.image.url }}" alt="{{ item.product.name }}"
+             class="w-full h-full object-cover" loading="lazy" />
+      {% else %}
+        <div class="w-full h-full flex items-center justify-center text-slate-300">
+          <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14"/>
+          </svg>
+        </div>
+      {% endif %}
+      {% endwith %}
+    </a>
+
+    <!-- Details -->
+    <div class="flex-1 min-w-0">
+      <a href="{% url 'product_detail' item.product.slug %}"
+         class="font-semibold text-slate-800 text-sm hover:text-primary transition-colors line-clamp-2">
+        {{ item.product.name }}
+      </a>
+      {% if item.product.category %}
+      <div class="text-xs text-slate-400 mt-0.5">{{ item.product.category.name }}</div>
+      {% endif %}
+
+      <div class="flex items-center justify-between mt-3">
+        <!-- Quantity controls -->
+        <form hx-post="{% url 'update_cart' item.id %}"
+              hx-target="#cart-items-container"
+              hx-swap="innerHTML"
+              class="flex items-center gap-2">
+          {% csrf_token %}
+          <button type="submit" name="quantity" value="{{ item.quantity|add:'-1' }}"
+                  class="qty-btn">−</button>
+          <span class="text-sm font-semibold text-slate-700 w-6 text-center">{{ item.quantity }}</span>
+          <button type="submit" name="quantity" value="{{ item.quantity|add:'1' }}"
+                  class="qty-btn">+</button>
+        </form>
+
+        <div class="flex items-center gap-4">
+          <span class="font-bold text-slate-900 text-sm">${{ item.line_total }}</span>
+          <!-- CSRF is handled globally via the htmx:configRequest listener in base.html -->
+          <button hx-post="{% url 'remove_from_cart' item.id %}"
+                  hx-target="#cart-items-container"
+                  hx-swap="innerHTML"
+                  class="text-slate-400 hover:text-red-500 transition-colors"
+                  title="Remove">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>

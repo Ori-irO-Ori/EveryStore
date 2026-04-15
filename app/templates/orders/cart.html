@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Cart — {{ STORE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <h1 class="text-2xl font-bold text-slate-900 mb-8">Shopping Cart</h1>
+
+  {% if cart.total_items > 0 %}
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <!-- Cart items -->
+    <div class="lg:col-span-2" id="cart-items-container">
+      {% include "orders/partials/cart_items.html" %}
+    </div>
+
+    <!-- Order summary -->
+    <div class="lg:col-span-1">
+      <div class="bg-white rounded-2xl border border-slate-100 p-6 sticky top-24">
+        <h2 class="font-semibold text-slate-900 mb-5">Order Summary</h2>
+
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between text-slate-600">
+            <span>Subtotal ({{ cart.total_items }} item{{ cart.total_items|pluralize }})</span>
+            <span>${{ cart.subtotal }}</span>
+          </div>
+          <div class="flex justify-between text-slate-600">
+            <span>Shipping</span>
+            <span class="text-emerald-600 font-medium">Calculated at checkout</span>
+          </div>
+          <div class="border-t border-slate-100 pt-3 flex justify-between font-bold text-slate-900 text-base">
+            <span>Total</span>
+            <span>${{ cart.subtotal }}</span>
+          </div>
+        </div>
+
+        <a href="{% url 'checkout' %}"
+           class="btn-primary w-full flex items-center justify-center gap-2 py-3.5 rounded-xl
+                  font-semibold text-sm mt-6 shadow-sm">
+          Proceed to Checkout
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+          </svg>
+        </a>
+
+        <a href="{% url 'product_list' %}"
+           class="block text-center text-sm text-slate-400 hover:text-slate-600 mt-3 transition-colors">
+          ← Continue Shopping
+        </a>
+
+        <!-- Secure payment badges -->
+        <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-center gap-2 text-xs text-slate-400">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+          SSL-encrypted checkout
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="text-center py-24">
+    <div class="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-6">
+      <svg class="w-9 h-9 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+      </svg>
+    </div>
+    <h2 class="text-xl font-semibold text-slate-700 mb-2">Your cart is empty</h2>
+    <p class="text-slate-400 text-sm mb-8">Browse our collection and add something you love.</p>
+    <a href="{% url 'product_list' %}"
+       class="btn-primary inline-flex items-center gap-2 px-8 py-3 rounded-full font-semibold text-sm">
+      Start Shopping
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

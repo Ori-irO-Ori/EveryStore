@@ -1,0 +1,14 @@
+# Minimal HTTP-only config used only during Let's Encrypt certificate issuance.
+server {
+    listen 80;
+    server_name ${DOMAIN};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 200 'EveryStore is starting up...';
+        add_header Content-Type text/plain;
+    }
+}

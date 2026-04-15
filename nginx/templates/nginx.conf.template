@@ -1,0 +1,90 @@
+upstream everystore_app {
+    server 127.0.0.1:8000;
+    keepalive 32;
+}
+
+# ── HTTP → HTTPS redirect ─────────────────────────────────────────────────────
+server {
+    listen 80;
+    server_name ${DOMAIN};
+
+    # Allow Let's Encrypt renewal challenges even after setup
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# ── HTTPS — Public Store (port 443) ──────────────────────────────────────────
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name ${DOMAIN};
+
+    ssl_certificate     ${CERT_FILE};
+    ssl_certificate_key ${KEY_FILE};
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+    ssl_session_cache   shared:SSL:10m;
+    ssl_session_timeout 10m;
+
+    client_max_body_size 20M;
+
+    # Static files (WhiteNoise serves these via Django, but nginx is faster)
+    location /static/ {
+        alias /app/staticfiles/;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+        access_log off;
+    }
+
+    location / {
+        proxy_pass         http://everystore_app;
+        proxy_set_header   Host $host;
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;
+        proxy_http_version 1.1;
+        proxy_set_header   Connection "";
+    }
+}
+
+# ── Admin Panel (random high port, HTTPS) ────────────────────────────────────
+server {
+    listen ${ADMIN_PORT} ssl;
+    http2 on;
+    server_name _;
+
+    ssl_certificate     ${CERT_FILE};
+    ssl_certificate_key ${KEY_FILE};
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+
+    client_max_body_size 20M;
+
+    location /static/ {
+        alias /app/staticfiles/;
+        expires 30d;
+        access_log off;
+    }
+
+    # Only expose the Django admin URL path; deny everything else
+    location /${ADMIN_URL_PATH}/ {
+        proxy_pass         http://everystore_app;
+        proxy_set_header   Host $host;
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto https;
+        proxy_read_timeout 60s;
+        proxy_http_version 1.1;
+        proxy_set_header   Connection "";
+    }
+
+    location / {
+        return 404;
+    }
+}
